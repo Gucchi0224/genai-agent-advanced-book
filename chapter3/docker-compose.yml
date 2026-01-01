@@ -14,9 +14,47 @@ services:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - genai-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser -d testdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: genai-ch3-app
+    environment:
+      # .envファイルから環境変数を読み込む
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
+      # PostgreSQL接続設定（コンテナ名を使用）
+      - PGUSER=testuser
+      - PGPASSWORD=testpass
+      - PGHOST=postgres
+      - PGDATABASE=testdb
+      - PGPORT=5432
+    ports:
+      - "8888:8888"
+    volumes:
+      # ソースコードをマウント（開発時の変更を即座に反映）
+      - .:/app
+      # uvキャッシュをボリュームにマウント（ビルド高速化）
+      - uv-cache:/root/.cache/uv
+    networks:
+      - genai-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # コンテナを常に起動状態にする（手動でコマンド実行する場合）
+    # stdin_open: true
+    # tty: true
+    # command: /bin/bash
 
 volumes:
   postgres_data:
+  uv-cache:
 
 networks:
   genai-network:
