@@ -1,5 +1,15 @@
+import os
+
 from elasticsearch import Elasticsearch
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from qdrant_client import QdrantClient
+
+
+class Settings(BaseSettings):
+    elasticsearch_url: str = "http://localhost:9200"
+    qdrant_url: str = "http://localhost:6333"
+
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
 def delete_es_index(es: Elasticsearch, index_name: str) -> None:
@@ -22,8 +32,10 @@ def delete_qdrant_index(qdrant_client: QdrantClient, collection_name: str) -> No
 
 
 if __name__ == "__main__":
-    es = Elasticsearch("http://localhost:9200")
-    qdrant_client = QdrantClient("http://localhost:6333")
+    settings = Settings()
+
+    es = Elasticsearch(settings.elasticsearch_url)
+    qdrant_client = QdrantClient(settings.qdrant_url)
 
     index_name = "documents"
 

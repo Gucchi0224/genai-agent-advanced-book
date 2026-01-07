@@ -1,8 +1,10 @@
 from elasticsearch import Elasticsearch
 from langchain.tools import tool
 from pydantic import BaseModel, Field
+from pydantic_settings import BaseSettings
 
 from src.custom_logger import setup_logger
+from src.configs import Settings
 from src.models import SearchOutput
 
 # 検索結果の最大取得数
@@ -27,7 +29,8 @@ def search_xyz_manual(keywords: str) -> list[SearchOutput]:
     logger.info(f"Searching XYZ manual by keyword: {keywords}")
 
     # Elasticsearchのインスタンスを作成して、ローカルのElasticsearchに接続
-    es = Elasticsearch("http://localhost:9200")
+    settings = Settings()
+    es = Elasticsearch(settings.elasticsearch_url)
 
     # 検索対象のインデックスを指定
     index_name = "documents"

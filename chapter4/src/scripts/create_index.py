@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     openai_api_key: str
     openai_api_base: str
     openai_model: str
+    elasticsearch_url: str = "http://localhost:9200"
+    qdrant_url: str = "http://localhost:6333"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
@@ -176,10 +178,10 @@ def add_documents_to_qdrant(
 
 
 if __name__ == "__main__":
-    es = Elasticsearch("http://localhost:9200")
-    qdrant_client = QdrantClient("http://localhost:6333")
-
     settings = Settings()
+
+    es = Elasticsearch(settings.elasticsearch_url)
+    qdrant_client = QdrantClient(settings.qdrant_url)
 
     index_name = "documents"
     print(f"Creating index for keyword search {index_name}")

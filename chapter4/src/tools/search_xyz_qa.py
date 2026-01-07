@@ -1,6 +1,7 @@
 from langchain.tools import tool
 from openai import OpenAI
 from pydantic import BaseModel, Field
+from pydantic_settings import BaseSettings
 from qdrant_client import QdrantClient
 
 from src.configs import Settings
@@ -25,9 +26,8 @@ def search_xyz_qa(query: str) -> list[SearchOutput]:
 
     logger.info(f"Searching XYZ QA by query: {query}")
 
-    qdrant_client = QdrantClient("http://localhost:6333")
-
     settings = Settings()
+    qdrant_client = QdrantClient(settings.qdrant_url)
     openai_client = OpenAI(api_key=settings.openai_api_key)
 
     logger.info("Generating embedding vector from input query")
