@@ -12,7 +12,14 @@ services:
       - discovery.type=single-node
       - xpack.security.enabled=false
     volumes:
-      - ./.rag_data/es_data:/usr/share/elasticsearch/data
+      - es_data:/usr/share/elasticsearch/data
+    networks:
+      - genai-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   qdrant:
     image: qdrant/qdrant:v1.11.3
@@ -20,4 +27,53 @@ services:
     ports:
       - "6333:6333"
     volumes:
-      - ./.rag_data/qdrant_data:/qdrant/storage
+      - qdrant_data:/qdrant/storage
+    networks:
+      - genai-network
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/localhost/6333' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: genai-ch4-app
+    environment:
+      # .envファイルから環境変数を読み込む
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_BASE=${OPENAI_API_BASE:-https://api.openai.com/v1}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-2024-08-06}
+      # Elasticsearch接続設定（コンテナ名を使用）
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      # Qdrant接続設定（コンテナ名を使用）
+      - QDRANT_URL=http://qdrant:6333
+    ports:
+      - "8888:8888"
+    volumes:
+      # ソースコードをマウント（開発時の変更を即座に反映）
+      - .:/app
+      # uvキャッシュをボリュームにマウント（ビルド高速化）
+      - uv-cache:/root/.cache/uv
+    networks:
+      - genai-network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    # コンテナを常に起動状態にする（手動でコマンド実行する場合）
+    # stdin_open: true
+    # tty: true
+    # command: /bin/bash
+
+volumes:
+  es_data:
+  qdrant_data:
+  uv-cache:
+
+networks:
+  genai-network:
+    driver: bridge
