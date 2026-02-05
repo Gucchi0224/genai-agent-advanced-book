@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: genai-ch5-app
+    environment:
+      # .envファイルから環境変数を読み込む
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_BASE=${OPENAI_API_BASE:-https://api.openai.com/v1}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-2024-11-20}
+      # E2B Code Interpreter API Key
+      - E2B_API_KEY=${E2B_API_KEY}
+    volumes:
+      # ソースコードをマウント（開発時の変更を即座に反映）
+      - .:/app
+      # uvキャッシュをボリュームにマウント（ビルド高速化）
+      - uv-cache:/root/.cache/uv
+    networks:
+      - genai-network
+    # コンテナを常に起動状態にする
+    stdin_open: true
+    tty: true
+
+volumes:
+  uv-cache:
+
+networks:
+  genai-network:
+    driver: bridge

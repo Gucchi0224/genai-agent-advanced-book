@@ -23,6 +23,50 @@ uv sync
 source .venv/bin/activate
 ```
 
+### Docker環境での実行（オプション）
+
+Docker環境で実行する場合は、以下の手順で環境を構築します。
+
+#### 1. Dockerイメージのビルド
+
+```bash
+make docker.build
+```
+
+#### 2. コンテナの起動
+
+```bash
+make docker.up
+```
+
+#### 3. スクリプトの実行
+
+Docker環境内でスクリプトを実行するには、以下のコマンドを使用します。
+
+```bash
+# 例: 01_e2b_sandbox.py を実行
+make docker.run.01
+
+# 例: 08_programmer.py を実行
+make docker.run.08
+
+# 例: シェルに入る
+make docker.shell
+```
+
+#### 4. コンテナの停止
+
+```bash
+make docker.down
+```
+
+#### その他のDockerコマンド
+
+```bash
+make docker.logs      # ログの確認
+make docker.restart   # コンテナの再起動
+```
+
 ### 環境変数のセット
 
 また `.env` ファイルに環境変数を設定します。
