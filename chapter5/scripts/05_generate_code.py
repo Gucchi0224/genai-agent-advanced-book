@@ -26,7 +26,7 @@ def main() -> None:
         user_request=user_request,
     )
     program = response.content
-    logger.info(program.model_dump_json(indent=4))
+    logger.info(program.code)
 
 
 if __name__ == "__main__":
